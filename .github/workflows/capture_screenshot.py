@@ -19,7 +19,7 @@ def capture_screenshot(index):
     
     try:
         # Set page load timeout to 30 seconds
-        driver.set_page_load_timeout(30)
+        driver.set_page_load_timeout(60)
 
         driver.get("https://whatismyipaddress.com/")
         time.sleep(5)  # Allow time for the page to load
