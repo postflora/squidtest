@@ -14,53 +14,41 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Create custom Docker network
-        run: docker network create --subnet=172.18.0.0/16 squid-network
+        run: docker network create --subnet=172.18.0.0/16 cloudflare-network
 
-      - name: Pull Squid image
-        run: docker pull sameersbn/squid
+      - name: Pull Cloudflare Warp image
+        run: docker pull cloudflare/cloudflared
 
-      - name: Run Squid containers
+      - name: Run Cloudflare Warp containers
         run: |
           for i in {1..5}; do
-            docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
-          done
-
-      - name: Configure Squid and restart containers
-        if: ${{ success() }}  # Only execute if containers are running successfully
-        run: |
-          for i in {1..5}; do
-            docker exec squid-$i sh -c "echo 'http_port 3128' > /etc/squid/squid.conf"
-            docker exec squid-$i sh -c "echo 'visible_hostname squid-proxy' >> /etc/squid/squid.conf"
-            docker exec squid-$i sh -c "echo 'acl localnet src 172.18.0.0/16' >> /etc/squid/squid.conf"
-            docker exec squid-$i sh -c "echo 'http_access allow localnet' >> /etc/squid/squid.conf"
-            docker exec squid-$i sh -c "echo 'http_access deny all' >> /etc/squid/squid.conf"
-            docker restart squid-$i
+            docker run -d --name cloudflare-$i --net cloudflare-network --ip 172.18.0.$((i+1)) cloudflare/cloudflared
           done
 
       - name: Install Python 3 and dependencies in Docker containers
-        if: ${{ success() }}  # Only execute if containers are running successfully
+        if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            docker exec squid-$i apt-get update
-            docker exec squid-$i apt-get install -y python3 python3-pip firefox wget tar
-            docker exec squid-$i pip3 install selenium
-            docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
-            docker exec squid-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
-            docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
+            docker exec cloudflare-$i apt-get update
+            docker exec cloudflare-$i apt-get install -y python3 python3-pip firefox wget tar
+            docker exec cloudflare-$i pip3 install selenium
+            docker exec cloudflare-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
+            docker exec cloudflare-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
+            docker exec cloudflare-$i rm geckodriver-v0.31.0-linux64.tar.gz
 
             # Create screenshots directory inside Docker container
-            docker exec squid-$i mkdir -p /home/ubuntu/screenshots
+            docker exec cloudflare-$i mkdir -p /home/ubuntu/screenshots
           done
 
       - name: Copy Python script into containers
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
+            RUNNING=$(docker inspect -f '{{.State.Running}}' cloudflare-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
+              docker cp .github/workflows/capture_screenshot.py cloudflare-$i:/home/ubuntu/capture_screenshot.py
             else
-              echo "Container squid-$i is not running, skipping."
+              echo "Container cloudflare-$i is not running, skipping."
             fi
           done
 
@@ -68,11 +56,11 @@ jobs:
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
+            RUNNING=$(docker inspect -f '{{.State.Running}}' cloudflare-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i
+              docker exec cloudflare-$i python3 /home/ubuntu/capture_screenshot.py $i
             else
-              echo "Container squid-$i is not running, skipping."
+              echo "Container cloudflare-$i is not running, skipping."
             fi
           done
 
@@ -82,11 +70,11 @@ jobs:
           mkdir -p screenshots
 
           for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
+            RUNNING=$(docker inspect -f '{{.State.Running}}' cloudflare-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker cp squid-$i:/home/ubuntu/screenshots screenshots/squid-$i
+              docker cp cloudflare-$i:/home/ubuntu/screenshots screenshots/cloudflare-$i
             else
-              echo "Container squid-$i is not running, skipping."
+              echo "Container cloudflare-$i is not running, skipping."
             fi
           done
 
