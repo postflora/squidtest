@@ -18,7 +18,7 @@ jobs:
           for i in {1..5}; do
             external_port=$((3130 + i))
             internal_port=$((3129 + i))
-            ip_address="172.18.0.$((10 + i))"
+            ip_address="172.18.0.$((22 + i))"
             docker run -d --name squid-$i --net squid-network --ip $ip_address -p $external_port:$internal_port sameersbn/squid
           done
 
@@ -50,7 +50,7 @@ jobs:
               docker exec squid-$i apt-get update
               docker exec squid-$i apt-get install -y curl
               echo "Testing proxy for squid-$i with external port $external_port"
-              docker exec squid-$i curl --proxy http://172.18.0.$((10 + i)):${external_port} https://ifconfig.me/ip
+              docker exec squid-$i curl --proxy http://172.18.0.$((22 + i)):${external_port} https://ifconfig.me/ip
             else
               echo "Container squid-$i is not running, skipping."
             fi
