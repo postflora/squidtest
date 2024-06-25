@@ -61,10 +61,9 @@ jobs:
             driver.get('https://whatismyipaddress.com/')
             time.sleep(5)  # Allow time for the page to load
 
-            driver.save_screenshot(f'/home/ubuntu/build/screenshot_{i}.png')
+            driver.save_screenshot(f'/sreenshots/screenshot_{i}.png')
             driver.quit()
         EOF
-          docker cp squid-$i:/home/ubuntu/build/screenshot_${i}.png screenshots/screenshot_${i}.png
         done
     
     - name: Archive screenshots as artifacts
