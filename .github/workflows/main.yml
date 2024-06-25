@@ -30,7 +30,7 @@ jobs:
         run: |
           for i in {1..5}; do
             docker cp squid.conf squid-$i:/etc/squid/squid.conf  # Copy modified squid.conf into container
-            docker exec squid-$i systemctl restart squid.service  # Restart Squid service inside container
+            docker exec squid-$i service squid restart  # Restart Squid service inside container
           done
           
       - name: Install Python 3 and dependencies in Docker containers
