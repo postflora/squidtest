@@ -25,32 +25,24 @@ jobs:
             docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
           done
 
-      - name: Start Squid on each container
+      - name: Configure and restart Squid in each container
         if: ${{ success() }}  # Only execute if containers are running successfully
         run: |
           for i in {1..5}; do
-            docker exec squid-$i service squid start
+            # Copy a modified squid.conf into each container
+            docker exec squid-$i sh -c "echo 'http_port 3128' > /etc/squid/squid.conf"
+            docker exec squid-$i sh -c "echo 'visible_hostname squid-proxy' >> /etc/squid/squid.conf"
+            docker exec squid-$i sh -c "echo 'acl localnet src 172.18.0.0/16' >> /etc/squid/squid.conf"
+            docker exec squid-$i sh -c "echo 'http_access allow localnet' >> /etc/squid/squid.conf"
+            docker exec squid-$i sh -c "echo 'http_access deny all' >> /etc/squid/squid.conf"
+            docker exec squid-$i service squid restart
           done
 
-      - name: Install iptables in Docker containers
+      - name: Install Python 3 and dependencies in Docker containers
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
             docker exec squid-$i apt-get update
-            docker exec squid-$i apt-get install -y iptables
-          done
-
-      - name: Allow port 3128 in iptables on each container
-        if: ${{ success() }}  # Only execute if iptables is installed successfully
-        run: |
-          for i in {1..5}; do
-            docker exec squid-$i iptables -A INPUT -p tcp --dport 3128 -j ACCEPT
-          done
-
-      - name: Install Python 3 and dependencies in Docker containers
-        if: ${{ success() }}  # Only execute if iptables rules are set successfully
-        run: |
-          for i in {1..5}; do
             docker exec squid-$i apt-get install -y python3 python3-pip firefox wget tar
             docker exec squid-$i pip3 install selenium
             docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
