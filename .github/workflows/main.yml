@@ -22,7 +22,7 @@ jobs:
       - name: Run Squid containers
         run: |
           for i in {1..5}; do
-            external_port=3128
+            external_port=((3128 + i))
             internal_port=$((3129 + i))
             docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) -p $external_port:$internal_port sameersbn/squid
           done
