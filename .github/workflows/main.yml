@@ -30,10 +30,37 @@ jobs:
         run: |
           for i in {1..5}; do
             docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget'
-            docker exec squid-$i wget -q "https://chromedriver.storage.googleapis.com/LATEST_RELEASE" -O /tmp/chromedriver_version
-            docker exec squid-$i wget -q "https://chromedriver.storage.googleapis.com/$(cat /tmp/chromedriver_version)/chromedriver_linux64.zip" -O /tmp/chromedriver.zip
+            docker exec squid-$i wget -q -O /tmp/chromedriver_version https://chromedriver.storage.googleapis.com/LATEST_RELEASE
+            docker exec squid-$i CHROMEVER=$(cat /tmp/chromedriver_version)
+            docker exec squid-$i wget -q "https://chromedriver.storage.googleapis.com/$CHROMEVER/chromedriver_linux64.zip" -O /tmp/chromedriver.zip
             docker exec squid-$i unzip -o /tmp/chromedriver.zip -d /usr/local/bin/
             docker exec squid-$i chmod +x /usr/local/bin/chromedriver
+            docker exec squid-$i rm /tmp/chromedriver.zip /tmp/chromedriver_version
+          done
+
+      - name: Create directory and copy Python script and Squid config into containers
+        if: ${{ success() }}  # Only execute if all containers are running
+        run: |
+          for i in {1..5}; do
+            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
+            if [ "$RUNNING" = "true" ]; then
+              docker exec squid-$i mkdir -p /home/ubuntu/screenshots
+              docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
+              docker cp squid.conf squid-$i:/etc/squid/squid.conf
+            else
+              echo "Container squid-$i is not running, skipping."
+            fi
+          done
+
+      - name: Restart Squid containers
+        run: |
+          for i in {1..5}; do
+            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
+            if [ "$RUNNING" = "true" ]; then
+              docker restart squid-$i
+            else
+              echo "Container squid-$i is not running, skipping."
+            fi
           done
 
       - name: Run Python script to capture screenshots with Chrome
