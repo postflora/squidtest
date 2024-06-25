@@ -34,6 +34,7 @@ jobs:
             docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
             docker exec squid-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
             docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
+            docker exec squid-$i chmod +x /usr/local/bin/geckodriver
           done
 
       - name: Create directory and copy Python script and Squid config into containers
