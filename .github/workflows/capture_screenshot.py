@@ -9,7 +9,7 @@ def capture_screenshot(index, external_port):
     options.add_argument('--log-level=DEBUG')
 
     # Proxy settings
-    proxy_host = f"172.18.0.{index}"
+    proxy_host = f"172.18.0.{index + 1}"
     proxy_port = external_port  # Use external port for proxy_port
     
     print(f"Proxy host: {proxy_host}, Proxy port: {proxy_port}")  # Debug output
