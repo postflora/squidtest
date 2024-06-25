@@ -45,18 +45,6 @@ jobs:
             docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
           done
 
-      - name: Copy Python script to Docker containers
-        if: ${{ success() }}  # Only execute if all containers are running
-        run: |
-          for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then
-              docker cp capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
-            else
-              echo "Container squid-$i is not running, skipping."
-            fi
-          done
-
       - name: Run Python script to capture screenshots with Firefox
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
@@ -65,7 +53,7 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i
+              docker exec squid-$i python3 capture_screenshot.py $i
             else
               echo "Container squid-$i is not running, skipping."
             fi
@@ -79,7 +67,7 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker cp squid-$i:/home/ubuntu/screenshots screenshots/squid-$i
+              docker cp squid-$i:screenshots screenshots/squid-$i
             else
               echo "Container squid-$i is not running, skipping."
             fi
