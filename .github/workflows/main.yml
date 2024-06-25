@@ -25,13 +25,11 @@ jobs:
             docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
           done
 
-      - name: Modify Squid configuration and reload configuration
-        if: ${{ success() }}  # Only execute if containers are running
+      - name: Start Squid on each container
+        if: ${{ success() }}  # Only execute if containers are running successfully
         run: |
           for i in {1..5}; do
-            docker exec squid-$i sed -i 's/^http_port .*/http_port 3128/g' /etc/squid/squid.conf
-            sleep 5  # Add a delay to allow Squid to fully start up
-            docker exec squid-$i squid -k reconfigure
+            docker exec squid-$i service squid start
           done
           
       - name: Install Python 3 and dependencies in Docker containers
