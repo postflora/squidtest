@@ -37,6 +37,7 @@ jobs:
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
               if [ "$RUNNING" = "true" ]; then
                 external_port=$((3130 + i))
+                docker exec squid-$i apt-get install -y curl
                 echo "Testing proxy for squid-$i with external port $external_port"
                 docker exec squid-$i curl --proxy http://172.18.0.$((i+1)):${external_port} https://ifconfig.me/ip
               else
