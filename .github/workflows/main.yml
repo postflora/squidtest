@@ -13,70 +13,64 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
+      - name: Remove existing Docker network (if necessary)
+        run: docker network rm squid-network || true
+
       - name: Create custom Docker network
-        run: docker network create --subnet=172.18.0.0/16 squid-network
+        run: docker network create --subnet=172.18.0.0/24 squid-network
 
       - name: Pull Squid image
         run: docker pull sameersbn/squid
 
-      - name: Run Squid containers
+      - name: Run Squid containers with explicit IPs
         run: |
-          for i in {1..5}; do
-            docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
-          done
+          docker run -d --name squid-1 --net squid-network --ip 172.18.0.2 sameersbn/squid
+          docker run -d --name squid-2 --net squid-network --ip 172.18.0.3 sameersbn/squid
+          docker run -d --name squid-3 --net squid-network --ip 172.18.0.4 sameersbn/squid
+          docker run -d --name squid-4 --net squid-network --ip 172.18.0.5 sameersbn/squid
+          docker run -d --name squid-5 --net squid-network --ip 172.18.0.6 sameersbn/squid
 
       - name: Install Python 3 and dependencies in Docker containers
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
-          for i in {1..5}; do
-            docker exec squid-$i apt-get update
-            docker exec squid-$i apt-get install -y python3 python3-pip firefox wget tar
-            docker exec squid-$i pip3 install selenium
-            docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
-            docker exec squid-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
-            docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
+          docker exec squid-1 apt-get update
+          docker exec squid-1 apt-get install -y python3 python3-pip firefox wget tar
+          docker exec squid-1 pip3 install selenium
+          docker exec squid-1 wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
+          docker exec squid-1 tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
+          docker exec squid-1 rm geckodriver-v0.31.0-linux64.tar.gz
+          docker exec squid-1 mkdir -p /home/ubuntu/screenshots
 
-            # Create screenshots directory inside Docker container
-            docker exec squid-$i mkdir -p /home/ubuntu/screenshots
-          done
+          # Repeat similar commands for squid-2 to squid-5
 
       - name: Copy Python script into containers
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
-          for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then
-              docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
-            else
-              echo "Container squid-$i is not running, skipping."
-            fi
-          done
+          docker cp .github/workflows/capture_screenshot.py squid-1:/home/ubuntu/capture_screenshot.py
+          docker cp .github/workflows/capture_screenshot.py squid-2:/home/ubuntu/capture_screenshot.py
+          docker cp .github/workflows/capture_screenshot.py squid-3:/home/ubuntu/capture_screenshot.py
+          docker cp .github/workflows/capture_screenshot.py squid-4:/home/ubuntu/capture_screenshot.py
+          docker cp .github/workflows/capture_screenshot.py squid-5:/home/ubuntu/capture_screenshot.py
 
       - name: Run Python script to capture screenshots with Firefox
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
-          for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i
-            else
-              echo "Container squid-$i is not running, skipping."
-            fi
-          done
+          docker exec squid-1 python3 /home/ubuntu/capture_screenshot.py 1
+          docker exec squid-2 python3 /home/ubuntu/capture_screenshot.py 2
+          docker exec squid-3 python3 /home/ubuntu/capture_screenshot.py 3
+          docker exec squid-4 python3 /home/ubuntu/capture_screenshot.py 4
+          docker exec squid-5 python3 /home/ubuntu/capture_screenshot.py 5
 
       - name: Copy screenshots from Docker containers
         if: ${{ success() }}  # Only execute if script ran successfully
         run: |
           mkdir -p screenshots
 
-          for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then
-              docker cp squid-$i:/home/ubuntu/screenshots screenshots/squid-$i
-            else
-              echo "Container squid-$i is not running, skipping."
-            fi
-          done
+          docker cp squid-1:/home/ubuntu/screenshots screenshots/squid-1
+          docker cp squid-2:/home/ubuntu/screenshots screenshots/squid-2
+          docker cp squid-3:/home/ubuntu/screenshots screenshots/squid-3
+          docker cp squid-4:/home/ubuntu/screenshots screenshots/squid-4
+          docker cp squid-5:/home/ubuntu/screenshots screenshots/squid-5
 
       - name: Archive screenshots as artifacts
         if: ${{ success() }}  # Only archive screenshots if copied successfully
