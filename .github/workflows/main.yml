@@ -72,6 +72,7 @@ jobs:
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
               external_port=$((3127 + i))
+              echo "Running capture_screenshot.py in squid-$i with external port $external_port"
               docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $external_port
             else
               echo "Container squid-$i is not running, skipping."
