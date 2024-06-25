@@ -38,6 +38,10 @@ jobs:
 
             # Create screenshots directory inside Docker container
             docker exec squid-$i mkdir -p /home/ubuntu/screenshots
+
+            # Copy squid.conf into Docker container and restart Squid
+            docker cp squid.conf squid-$i:/etc/squid/squid.conf
+            docker exec squid-$i service squid restart
           done
 
       - name: Copy Python script into containers
