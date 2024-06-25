@@ -32,19 +32,11 @@ jobs:
             docker exec squid-$i service squid start
           done
 
-      - name: Install ufw in Docker containers
-        if: ${{ success() }}  # Only execute if all containers are running
+      - name: Allow port 3128 in iptables on each container
+        if: ${{ success() }}  # Only execute if containers are running
         run: |
           for i in {1..5}; do
-            docker exec squid-$i apt-get update
-            docker exec squid-$i apt-get install -y ufw sudo
-          done
-
-      - name: Allow port 3128 in ufw on each container
-        if: ${{ success() }}  # Only execute if ufw is installed successfully
-        run: |
-          for i in {1..5}; do
-            docker exec squid-$i sudo ufw allow 3128
+            docker exec squid-$i iptables -A INPUT -p tcp --dport 3128 -j ACCEPT
           done
           
       - name: Install Python 3 and dependencies in Docker containers
