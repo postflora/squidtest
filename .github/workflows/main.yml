@@ -29,6 +29,9 @@ jobs:
             
             # Apply SNAT rule using nftables with sudo
             sudo nft add rule nat postrouting ip saddr $ip_address oifname "bridge-coi" snat to $nat_ip
+
+            # Print nft rules for debugging
+            sudo nft list ruleset
           done
 
       - name: Display Docker container ports
