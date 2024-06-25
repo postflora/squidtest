@@ -29,7 +29,7 @@ jobs:
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget'
+            docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget unzip'
             docker exec squid-$i wget -q -O /tmp/chromedriver_version https://chromedriver.storage.googleapis.com/LATEST_RELEASE
             docker exec squid-$i CHROMEVER=$(cat /tmp/chromedriver_version)
             docker exec squid-$i wget -q "https://chromedriver.storage.googleapis.com/$CHROMEVER/chromedriver_linux64.zip" -O /tmp/chromedriver.zip
