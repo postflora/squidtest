@@ -34,6 +34,7 @@ jobs:
             docker exec squid-$i sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee -a /etc/apt/sources.list.d/google-chrome.list'
             docker exec squid-$i apt-get update
             docker exec squid-$i apt-get install -y google-chrome-stable
+            docker exec squid-$i chmod +x /opt/google/chrome/chrome
             docker exec squid-$i wget -q "https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver-linux64.zip
             docker exec squid-$i unzip -o /tmp/chromedriver-linux64.zip -d /tmp
             docker exec squid-$i mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
