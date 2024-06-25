@@ -1,6 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 import time
+import sys
 
 def capture_screenshot(index):
     options = Options()
@@ -16,7 +18,9 @@ def capture_screenshot(index):
     profile.update_preferences()
 
     # Using executable_path to specify GeckoDriver path
-    driver = webdriver.Firefox(firefox_profile=profile, options=options, executable_path='/usr/local/bin/geckodriver')
+    service = Service('/usr/local/bin/geckodriver')
+    
+    driver = webdriver.Firefox(service=service, options=options, firefox_profile=profile)
     
     try:
         # Set page load timeout to 30 seconds
@@ -31,6 +35,9 @@ def capture_screenshot(index):
         driver.quit()
 
 if __name__ == "__main__":
-    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python capture_screenshot.py <index>")
+        sys.exit(1)
+    
     index = int(sys.argv[1])
     capture_screenshot(index)
