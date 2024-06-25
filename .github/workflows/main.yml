@@ -37,14 +37,14 @@ jobs:
         run: |
           for i in {1..5}; do
             docker exec squid-$i apt-get update
-            docker exec squid-$i apt-get install -y ufw
+            docker exec squid-$i apt-get install -y ufw sudo
           done
 
       - name: Allow port 3128 in ufw on each container
         if: ${{ success() }}  # Only execute if ufw is installed successfully
         run: |
           for i in {1..5}; do
-            docker exec squid-$i ufw allow 3128
+            docker exec squid-$i sudo ufw allow 3128
           done
           
       - name: Install Python 3 and dependencies in Docker containers
