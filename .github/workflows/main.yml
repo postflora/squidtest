@@ -29,8 +29,8 @@ jobs:
         if: ${{ success() }}  # Only execute if containers are running
         run: |
           for i in {1..5}; do
-            # Modify http_port in squid.conf and reload configuration
             docker exec squid-$i sed -i 's/^http_port .*/http_port 3128/g' /etc/squid/squid.conf
+            sleep 5  # Add a delay to allow Squid to fully start up
             docker exec squid-$i squid -k reconfigure
           done
           
