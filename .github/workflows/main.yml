@@ -46,29 +46,29 @@ jobs:
         
         for i in {2..6}; do
           docker exec squid-$i python3 - << 'EOF'
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-import time
+          from selenium import webdriver
+          from selenium.webdriver.firefox.options import Options
+          import time
 
-options = Options()
-options.headless = True
+          options = Options()
+          options.headless = True
 
-for i in range(2, 7):
-    profile = webdriver.FirefoxProfile()
-    profile.set_preference("network.proxy.type", 1)
-    profile.set_preference("network.proxy.http", f"172.18.0.{i}")
-    profile.set_preference("network.proxy.http_port", 3128)
-    profile.set_preference("network.proxy.ssl", f"172.18.0.{i}")
-    profile.set_preference("network.proxy.ssl_port", 3128)
-    profile.update_preferences()
+          for i in range(2, 7):
+            profile = webdriver.FirefoxProfile()
+            profile.set_preference("network.proxy.type", 1)
+            profile.set_preference("network.proxy.http", f"172.18.0.{i}")
+            profile.set_preference("network.proxy.http_port", 3128)
+            profile.set_preference("network.proxy.ssl", f"172.18.0.{i}")
+            profile.set_preference("network.proxy.ssl_port", 3128)
+            profile.update_preferences()
 
-    driver = webdriver.Firefox(options=options, firefox_profile=profile)
-    driver.get('https://whatismyipaddress.com/')
-    time.sleep(5)  # Allow time for the page to load
+            driver = webdriver.Firefox(options=options, firefox_profile=profile)
+            driver.get('https://whatismyipaddress.com/')
+            time.sleep(5)  # Allow time for the page to load
 
-    driver.save_screenshot(f'/home/ubuntu/build/screenshot_{i}.png')
-    driver.quit()
-EOF
+            driver.save_screenshot(f'/home/ubuntu/build/screenshot_{i}.png')
+            driver.quit()
+        EOF
           docker cp squid-$i:/home/ubuntu/build/screenshot_${i}.png screenshots/screenshot_${i}.png
         done
     
