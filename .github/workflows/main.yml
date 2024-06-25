@@ -30,13 +30,16 @@ jobs:
         run: |
           for i in {1..5}; do
             docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget unzip python3 python3-pip'
+            docker exec squid-$i sh -c 'wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -'
+            docker exec squid-$i sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee -a /etc/apt/sources.list.d/google-chrome.list'
+            docker exec squid-$i apt-get update
+            docker exec squid-$i apt-get install -y google-chrome-stable
             docker exec squid-$i wget -q "https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver-linux64.zip
             docker exec squid-$i unzip -o /tmp/chromedriver-linux64.zip -d /tmp
             docker exec squid-$i mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
             docker exec squid-$i chmod +x /usr/local/bin/chromedriver
             docker exec squid-$i rm -rf /tmp/chromedriver-linux64 /tmp/chromedriver.zip
             docker exec squid-$i pip3 install selenium
-            docker exec squid-$i /usr/local/bin/chromedriver --version
           done
 
       - name: Create directory and copy Python script and Squid config into containers
