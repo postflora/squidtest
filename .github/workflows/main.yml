@@ -34,7 +34,6 @@ jobs:
             docker exec squid-$i wget -q "https://chromedriver.storage.googleapis.com/$(cat /tmp/chromedriver_version)/chromedriver_linux64.zip" -O /tmp/chromedriver.zip
             docker exec squid-$i unzip -o /tmp/chromedriver.zip -d /usr/local/bin/
             docker exec squid-$i chmod +x /usr/local/bin/chromedriver
-            docker exec squid-$i rm /tmp/chromedriver.zip /tmp/chromedriver_version
           done
 
       - name: Run Python script to capture screenshots with Chrome
