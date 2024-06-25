@@ -21,11 +21,15 @@ jobs:
             external_port=$((3130 + i))
             internal_port=$((3129 + i))
 
+            # Generate a random external IP address in the range 1xx.xxx.xxx.100 to 1xx.xxx.xxx.104
+            random_ip=$((100 + RANDOM % 5))
+            external_ip="1xx.xxx.xxx.$random_ip"
+
             # Start container with specific IP and port mappings
             docker run -d --name squid-$i --net squid-network --ip $ip_address -p $external_port:$internal_port sameersbn/squid
             
-            # Apply NAT rules using iptables (alternative method)
-            iptables -h
+            # Apply NAT rules using iptables
+            iptables -t nat -A POSTROUTING -s $ip_address ! -o bridge-coi -j SNAT --to-source $external_ip
           done
 
       - name: Display Docker container ports
