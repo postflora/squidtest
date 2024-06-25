@@ -42,7 +42,8 @@ jobs:
             docker exec squid-$i sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee -a /etc/apt/sources.list.d/google-chrome.list'
             docker exec squid-$i apt-get update
             docker exec squid-$i apt-get install -y google-chrome-stable
-            docker exec squid-$i CHROMEVER=$(google-chrome-stable --version | awk "{print \$3}" | awk -F'.' "{print \$1}")
+            docker exec squid-$i CHROMEVER=$(google-chrome-stable --version | awk '{print $3}' | awk -F'.' '{print $1}')
+            docker exec squid-$i sh -c "echo 'export CHROMEVER=$CHROMEVER' >> /etc/profile"
             docker exec squid-$i wget -q "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROMEVER" -O /tmp/chromedriver_version
             docker exec squid-$i wget -q "https://chromedriver.storage.googleapis.com/$(cat /tmp/chromedriver_version)/chromedriver_linux64.zip" -O /tmp/chromedriver.zip
             docker exec squid-$i unzip -o /tmp/chromedriver.zip -d /usr/local/bin/
@@ -81,7 +82,7 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i
+              docker exec squid-$i /bin/bash -c "source /etc/profile && python3 /home/ubuntu/capture_screenshot.py $i"
             else
               echo "Container squid-$i is not running, skipping."
             fi
