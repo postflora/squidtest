@@ -22,12 +22,12 @@ def capture_screenshot(index, proxy_port):
     driver = webdriver.Firefox(executable_path=gecko_driver_path, options=options)
     
     try:
-    # Set page load timeout to 30 seconds
-    driver.set_page_load_timeout(60)
+        # Set page load timeout to 30 seconds
+        driver.set_page_load_timeout(60)
 
-    driver.get("https://whatismyipaddress.com/")
-    time.sleep(5)  # Allow time for the page to load
-    driver.save_screenshot(f"/home/ubuntu/screenshots/screenshot_{index}.png")
+        driver.get("https://whatismyipaddress.com/")
+        time.sleep(5)  # Allow time for the page to load
+        driver.save_screenshot(f"/home/ubuntu/screenshots/screenshot_{index}.png")
 
     except Exception as e:
         print(f"Error occurred: {str(e)}")
