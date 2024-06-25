@@ -1,11 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service
 import time
 
 def capture_screenshot(index):
     options = Options()
-    service = Service('/usr/local/bin/geckodriver')
     options.headless = True
     options.add_argument('--log-level=DEBUG')
 
@@ -17,12 +15,15 @@ def capture_screenshot(index):
     profile.set_preference("network.proxy.ssl_port", 3128)
     profile.update_preferences()
 
-    driver = webdriver.Firefox(service=service, options=options)
-    driver.get("https://whatismyipaddress.com/")
-    time.sleep(5)  # Allow time for the page to load
-
-    driver.save_screenshot(f"/home/ubuntu/screenshots/screenshot_{index}.png")
-    driver.quit()
+    # Using executable_path to specify GeckoDriver path
+    driver = webdriver.Firefox(firefox_profile=profile, options=options, executable_path='/usr/local/bin/geckodriver')
+    
+    try:
+        driver.get("https://whatismyipaddress.com/")
+        time.sleep(5)  # Allow time for the page to load
+        driver.save_screenshot(f"/home/ubuntu/screenshots/screenshot_{index}.png")
+    finally:
+        driver.quit()
 
 if __name__ == "__main__":
     import sys
