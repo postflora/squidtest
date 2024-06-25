@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Create custom Docker network
-        run: docker network create --subnet=172.18.0.0/16 squid-network
+        run: sudo docker network create --subnet=172.18.0.0/16 squid-network
 
       - name: Run Squid containers with specific IPs and NAT rules
         run: |
@@ -26,10 +26,10 @@ jobs:
             external_ip="1xx.xxx.xxx.$random_ip"
 
             # Start container with specific IP and port mappings
-            docker run -d --name squid-$i --net squid-network --ip $ip_address -p $external_port:$internal_port sameersbn/squid
+            sudo docker run -d --name squid-$i --net squid-network --ip $ip_address -p $external_port:$internal_port sameersbn/squid
             
-            # Apply NAT rules using nftables
-            nft add rule nat postrouting ip saddr $ip_address oifname "bridge-coi" snat to $external_ip
+            # Apply NAT rules using nftables with sudo
+            sudo nft add rule nat postrouting ip saddr $ip_address oifname "bridge-coi" snat to $external_ip
           done
 
       - name: Display Docker container ports
@@ -45,9 +45,9 @@ jobs:
             echo "http_port $external_port" >> squid-$i.conf  # Set external http_port to incremental ports for each container
             echo "http_port $internal_port" >> squid-$i.conf  # Set internal http_port to incremental ports for each container
             echo "visible_hostname squid-$i" >> squid-$i.conf  # Set the visible hostname for Squid
-            docker cp squid-$i.conf squid-$i:/etc/squid/squid.conf
+            sudo docker cp squid-$i.conf squid-$i:/etc/squid/squid.conf
             rm squid-$i.conf
-            docker restart squid-$i
+            sudo docker restart squid-$i
           done
 
       - name: Verify Proxy Functionality
@@ -57,10 +57,10 @@ jobs:
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
               external_port=$((3130 + i))
-              docker exec squid-$i apt-get update
-              docker exec squid-$i apt-get install -y curl
+              sudo docker exec squid-$i apt-get update
+              sudo docker exec squid-$i apt-get install -y curl
               echo "Testing proxy for squid-$i with external port $external_port"
-              docker exec squid-$i curl --proxy http://172.18.0.$((10 + i)):${external_port} https://ifconfig.me/ip
+              sudo docker exec squid-$i curl --proxy http://172.18.0.$((10 + i)):${external_port} https://ifconfig.me/ip
             else
               echo "Container squid-$i is not running, skipping."
             fi
@@ -70,16 +70,16 @@ jobs:
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            docker exec squid-$i cat /etc/squid/squid.conf
-            docker exec squid-$i apt-get update
-            docker exec squid-$i apt-get install -y python3 python3-pip firefox wget tar
-            docker exec squid-$i pip3 install selenium
-            docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
-            docker exec squid-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
-            docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
+            sudo docker exec squid-$i cat /etc/squid/squid.conf
+            sudo docker exec squid-$i apt-get update
+            sudo docker exec squid-$i apt-get install -y python3 python3-pip firefox wget tar
+            sudo docker exec squid-$i pip3 install selenium
+            sudo docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
+            sudo docker exec squid-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
+            sudo docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
 
             # Create screenshots directory inside Docker container
-            docker exec squid-$i mkdir -p /home/ubuntu/screenshots
+            sudo docker exec squid-$i mkdir -p /home/ubuntu/screenshots
           done
 
       - name: Copy Python script into containers
@@ -88,7 +88,7 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
+              sudo docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
             else
               echo "Container squid-$i is not running, skipping."
             fi
@@ -103,7 +103,7 @@ jobs:
               external_port=$((3130 + i))
               internal_port=$((3129 + i))
               echo "Running capture_screenshot.py in squid-$i with external port $external_port and internal port $internal_port"
-              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $external_port
+              sudo docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $external_port
             else
               echo "Container squid-$i is not running, skipping."
             fi
@@ -117,7 +117,7 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker cp squid-$i:/home/ubuntu/screenshots screenshots/squid-$i
+              sudo docker cp squid-$i:/home/ubuntu/screenshots screenshots/squid-$i
             else
               echo "Container squid-$i is not running, skipping."
             fi
