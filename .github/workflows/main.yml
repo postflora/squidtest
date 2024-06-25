@@ -39,7 +39,7 @@ jobs:
       run: |
         mkdir -p screenshots
         
-        for i in {2..6}; do
+        for i in {1..5}; do
           docker exec squid-$i python3 - << 'EOF'
           from selenium import webdriver
           from selenium.webdriver.firefox.options import Options
@@ -48,7 +48,7 @@ jobs:
           options = Options()
           options.headless = True
 
-          for i in range(2, 6):
+          for i in range(1, 5):
             profile = webdriver.FirefoxProfile()
             profile.set_preference("network.proxy.type", 1)
             profile.set_preference("network.proxy.http", f"172.18.0.{i}")
