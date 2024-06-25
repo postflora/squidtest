@@ -22,7 +22,7 @@ jobs:
       - name: Run Squid containers
         run: |
           for i in {1..5}; do
-            external_port=$((3128 + i))
+            external_port=$((3130 + i))
             internal_port=$((3129 + i))
             docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) -p $external_port:$internal_port sameersbn/squid
           done
@@ -33,19 +33,15 @@ jobs:
       - name: Generate and Copy custom squid.conf into containers
         run: |
           for i in {1..5}; do
-            internal_port=$((3128 + i))
-            external_port=$((3129 + i))
+            internal_port=$((3129 + i))
+            external_port=$((3130 + i))
             echo "acl all src all" > squid-$i.conf
             echo "http_access allow all" >> squid-$i.conf
             echo "http_port $external_port" >> squid-$i.conf  # Set external http_port to incremental ports for each container
             echo "http_port $internal_port" >> squid-$i.conf  # Set internal http_port to incremental ports for each container
             docker cp squid-$i.conf squid-$i:/etc/squid/squid.conf
             rm squid-$i.conf
-            # Only restart if the container is already running
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-              if [ "$RUNNING" = "true" ]; then 
-                docker restart squid-$i
-              fi
+            docker restart squid-$i
           done
 
       - name: Install Python 3 and dependencies in Docker containers
@@ -82,8 +78,8 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              internal_port=$((3128 + i))
-              external_port=$((3129 + i))
+              internal_port=$((3129 + i))
+              external_port=$((3130 + i))
               echo "Running capture_screenshot.py in squid-$i with external port $external_port and internal port $internal_port"
               docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $external_port
             else
