@@ -5,7 +5,7 @@ import time
 
 def capture_screenshot(index):
     options = Options()
-    service = Service('/path/to/geckodriver')
+    service = Service('/usr/local/bin/geckodriver')
     options.headless = True
     options.add_argument('--log-level=DEBUG')
 
