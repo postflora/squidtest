@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install dependencies for nftables
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nftables
+
       - name: Create custom Docker network
         run: sudo docker network create --subnet=172.18.0.0/16 squid-network
 
@@ -28,7 +33,9 @@ jobs:
             sudo docker run -d --name squid-$i --net squid-network --ip $ip_address -p $external_port:$internal_port sameersbn/squid
             
             # Apply SNAT rule using nftables with sudo
-            sudo nft add rule nat postrouting ip saddr $ip_address oifname "bridge-coi" snat to $nat_ip
+            sudo nft add table ip nat || true
+            sudo nft add chain ip nat POSTROUTING { type nat hook postrouting priority 100 \; } || true
+            sudo nft add rule ip nat POSTROUTING ip saddr $ip_address oifname "bridge-coi" snat to $nat_ip
 
             # Print nft rules for debugging
             sudo nft list ruleset
@@ -100,34 +107,4 @@ jobs:
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then
-              external_port=$((3130 + i))
-              internal_port=$((3129 + i))
-              echo "Running capture_screenshot.py in squid-$i with external port $external_port and internal port $internal_port"
-              sudo docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $external_port
-            else
-              echo "Container squid-$i is not running, skipping."
-            fi
-          done
-
-      - name: Copy screenshots from Docker containers
-        if: ${{ success() }}  # Only execute if script ran successfully
-        run: |
-          mkdir -p screenshots
-
-          for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then
-              sudo docker cp squid-$i:/home/ubuntu/screenshots screenshots/squid-$i
-            else
-              echo "Container squid-$i is not running, skipping."
-            fi
-          done
-
-      - name: Archive screenshots as artifacts
-        if: ${{ success() }}  # Only archive screenshots if copied successfully
-        uses: actions/upload-artifact@v2
-        with:
-          name: screenshots
-          path: screenshots
+            RUNNING=$(d
