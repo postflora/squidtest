@@ -29,7 +29,7 @@ jobs:
         if: ${{ success() }}  # Only execute if containers are running
         run: |
           for i in {1..5}; do
-            docker cp squid.conf squid-$i:/etc/squid/squid.conf  # Copy modified squid.conf into container
+            docker exec squid-$i sed -i 's/^http_port .*/http_port 3128/g' /etc/squid/squid.conf
             docker exec squid-$i service squid restart  # Restart Squid service inside container
           done
           
