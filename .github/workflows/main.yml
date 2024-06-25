@@ -34,7 +34,7 @@ jobs:
         run: |
           for i in {1..5}; do
             external_port=$((3127 + i))
-            echo "acl localnet src 172.18.0.0/16" > squid-$i.conf
+            echo "acl all src all" > squid-$i.conf
             echo "http_access allow localnet" >> squid-$i.conf
             echo "http_port $external_port" >> squid-$i.conf
             docker cp squid-$i.conf squid-$i:/etc/squid/squid.conf
