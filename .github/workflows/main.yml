@@ -45,6 +45,18 @@ jobs:
             docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
           done
 
+      - name: Copy Python script to Docker containers
+        if: ${{ success() }}  # Only execute if all containers are running
+        run: |
+          for i in {1..5}; do
+            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
+            if [ "$RUNNING" = "true" ]; then
+              docker cp capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
+            else
+              echo "Container squid-$i is not running, skipping."
+            fi
+          done
+
       - name: Run Python script to capture screenshots with Firefox
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
@@ -53,32 +65,10 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-                  docker exec squid-$i python3 -c '
-                  from selenium import webdriver
-                  from selenium.webdriver.firefox.options import Options
-                  import time
-
-                  options = Options()
-                  options.headless = True
-
-                  profile = webdriver.FirefoxProfile()
-                  profile.set_preference("network.proxy.type", 1)
-                  profile.set_preference("network.proxy.http", f"172.18.0.{i}")
-                  profile.set_preference("network.proxy.http_port", 3128)
-                  profile.set_preference("network.proxy.ssl", f"172.18.0.{i}")
-                  profile.set_preference("network.proxy.ssl_port", 3128)
-                  profile.update_preferences()
-
-                  driver = webdriver.Firefox(options=options, firefox_profile=profile)
-                  driver.get("https://whatismyipaddress.com/")
-                  time.sleep(5)  # Allow time for the page to load
-
-                  driver.save_screenshot(f"/home/ubuntu/screenshots/screenshot_{i}.png")
-                  driver.quit()
-                  '
-           else
-            echo "Container squid-$i is not running, skipping."
-           fi
+              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i
+            else
+              echo "Container squid-$i is not running, skipping."
+            fi
           done
 
       - name: Copy screenshots from Docker containers
