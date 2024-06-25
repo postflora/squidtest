@@ -25,6 +25,13 @@ jobs:
             docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
           done
 
+      - name: Log Squid container output
+        run: |
+          for i in {1..5}; do
+            echo "Logs for squid-$i:"
+            docker logs squid-$i
+          done
+
       - name: Verify containers are running
         run: |
           for i in {1..5}; do
@@ -50,7 +57,7 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i mkdir -p /home/ubuntu
+              docker exec squid-$i mkdir -p /home/ubuntu/screenshots
               docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
             else
               echo "Container squid-$i is not running, skipping."
@@ -60,8 +67,6 @@ jobs:
       - name: Run Python script to capture screenshots with Firefox
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
-          mkdir -p screenshots
-
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
