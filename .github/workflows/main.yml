@@ -25,21 +25,20 @@ jobs:
             docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
           done
 
-      - name: Configure and restart Squid in each container
+      - name: Configure Squid and restart containers
         if: ${{ success() }}  # Only execute if containers are running successfully
         run: |
           for i in {1..5}; do
-            # Copy a modified squid.conf into each container
             docker exec squid-$i sh -c "echo 'http_port 3128' > /etc/squid/squid.conf"
             docker exec squid-$i sh -c "echo 'visible_hostname squid-proxy' >> /etc/squid/squid.conf"
             docker exec squid-$i sh -c "echo 'acl localnet src 172.18.0.0/16' >> /etc/squid/squid.conf"
             docker exec squid-$i sh -c "echo 'http_access allow localnet' >> /etc/squid/squid.conf"
             docker exec squid-$i sh -c "echo 'http_access deny all' >> /etc/squid/squid.conf"
-            docker exec squid-$i service squid restart
+            docker restart squid-$i
           done
 
       - name: Install Python 3 and dependencies in Docker containers
-        if: ${{ success() }}  # Only execute if all containers are running
+        if: ${{ success() }}  # Only execute if containers are running successfully
         run: |
           for i in {1..5}; do
             docker exec squid-$i apt-get update
