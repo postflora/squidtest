@@ -24,7 +24,7 @@ jobs:
           for i in {1..5}; do
             external_port=$((3130 + i))
             internal_port=$((3129 + i))
-            docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) -p $external_port:$internal_port --add-host=squid-$i:172.18.0.$((i+1)) sameersbn/squid
+            docker run -d --name squid-$i --net squid-network -p $external_port:$internal_port --add-host=squid-$i:172.18.0.$((i+1)) sameersbn/squid
           done
 
       - name: Display Docker container ports
@@ -94,8 +94,8 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              internal_port=$((3129 + i))
               external_port=$((3130 + i))
+              internal_port=$((3129 + i))
               echo "Running capture_screenshot.py in squid-$i with external port $external_port and internal port $internal_port"
               docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $external_port
             else
