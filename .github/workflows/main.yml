@@ -67,7 +67,7 @@ jobs:
       - name: Copy screenshots from Docker containers
         if: ${{ success() }}  # Only execute if script ran successfully
         run: |
-          mkdir -p artifacts/screenshots
+          mkdir -p screenshots
 
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
@@ -83,4 +83,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: screenshots
-          path: artifacts/screenshots
+          path: screenshots
