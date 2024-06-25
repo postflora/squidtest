@@ -41,7 +41,7 @@ jobs:
             rm squid-$i.conf
             # Only restart if the container is already running
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then
+            if [ "$RUNNING" = "true" ]; then 
               docker restart squid-$i
             fi
           done
