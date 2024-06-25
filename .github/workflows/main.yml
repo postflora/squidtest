@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Create custom Docker network
-        run: docker network create --driver-bridge --subnet=172.18.0.0/16 squid-network
+        run: docker network create --subnet=172.18.0.0/16 squid-network
 
       - name: Run Squid containers
         run: |
