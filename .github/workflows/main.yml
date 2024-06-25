@@ -45,7 +45,7 @@ jobs:
             if [ "$RUNNING" = "true" ]; then
               docker exec squid-$i mkdir -p /home/ubuntu/screenshots
               docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
-              docker cp squid.conf /etc/squid/squid.conf
+              docker cp squid.conf squid-$i:/etc/squid/squid.conf
             else
               echo "Container squid-$i is not running, skipping."
             fi
