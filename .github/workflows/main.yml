@@ -29,11 +29,12 @@ jobs:
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget unzip'
+            docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget unzip && mkdir -p /usr/local/bin'
             docker exec squid-$i wget -q "https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip
-            docker exec squid-$i unzip -o /tmp/chromedriver.zip -d /usr/local/bin/
+            docker exec squid-$i unzip -o /tmp/chromedriver.zip -d /tmp
+            docker exec squid-$i mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
             docker exec squid-$i chmod +x /usr/local/bin/chromedriver
-            docker exec squid-$i rm /tmp/chromedriver.zip
+            docker exec squid-$i rm -rf /tmp/chromedriver-linux64 /tmp/chromedriver.zip
           done
 
       - name: Create directory and copy Python script and Squid config into containers
