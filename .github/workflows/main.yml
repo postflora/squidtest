@@ -36,6 +36,7 @@ jobs:
             docker exec squid-$i chmod +x /usr/local/bin/chromedriver
             docker exec squid-$i rm -rf /tmp/chromedriver-linux64 /tmp/chromedriver.zip
             docker exec squid-$i pip3 install selenium
+            docker exec squid-$i /usr/local/bin/chromedriver --version
           done
 
       - name: Create directory and copy Python script and Squid config into containers
