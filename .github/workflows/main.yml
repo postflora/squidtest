@@ -25,7 +25,7 @@ jobs:
             docker run -d --name squid-$i --net squid-network --ip $ip_address -p $external_port:$internal_port sameersbn/squid
             
             # Apply NAT rules using iptables (alternative method)
-            iptables -t nat -A POSTROUTING -j SNAT --to-destination 192.168.1.100:3000-4000
+            iptables -h
           done
 
       - name: Display Docker container ports
