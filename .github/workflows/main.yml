@@ -30,20 +30,19 @@ jobs:
       - name: Display Docker container ports
         run: docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -E 'squid-[1-5]' || true
 
-      - name: Generate and Copy custom squid.conf into containers
+      - name: Run Python script to capture screenshots with Firefox
+        if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            internal_port=$((3129 + i))
-            echo "acl all src all" > squid-$i.conf
-            echo "http_access allow all" >> squid-$i.conf
-            echo "http_port $internal_port" >> squid-$i.conf  # Set http_port to incremental ports for each container
-            docker cp squid-$i.conf squid-$i:/etc/squid/squid.conf
-            rm squid-$i.conf
-            # Only restart if the container is already running
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then 
-              docker restart squid-$i
-            fi
+              if [ "$RUNNING" = "true" ]; then
+                internal_port=$((3128 + i))
+                external_port=$((3129 + i))
+                echo "Running capture_screenshot.py in squid-$i with external port $external_port and internal port $internal_port"
+                docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $external_port
+              else
+                echo "Container squid-$i is not running, skipping."
+              fi
           done
 
       - name: Install Python 3 and dependencies in Docker containers
