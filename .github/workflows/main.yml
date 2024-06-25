@@ -1,4 +1,4 @@
-name: Capture Screenshots with Chrome
+name: Capture Screenshots with Firefox
 
 on:
   push:
@@ -25,25 +25,26 @@ jobs:
             docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
           done
 
-      - name: Install Chromedriver in Docker containers
+      - name: Verify containers are running
+        run: |
+          for i in {1..5}; do
+            docker inspect -f '{{.State.Running}}' squid-$i
+          done
+        continue-on-error: true  # Continue even if some containers are not running
+
+      - name: Install Python 3 and dependencies in Docker containers
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget unzip python3 python3-pip sudo'
-            docker exec squid-$i sh -c 'wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -'
-            docker exec squid-$i sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee -a /etc/apt/sources.list.d/google-chrome.list'
             docker exec squid-$i apt-get update
-            docker exec squid-$i apt-get install -y google-chrome-stable
-            docker exec squid-$i chmod +x /opt/google/chrome/chrome
-            docker exec squid-$i wget -q "https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver-linux64.zip
-            docker exec squid-$i unzip -o /tmp/chromedriver-linux64.zip -d /tmp
-            docker exec squid-$i mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
-            docker exec squid-$i chmod +x /usr/local/bin/chromedriver
-            docker exec squid-$i rm -rf /tmp/chromedriver-linux64 /tmp/chromedriver.zip
+            docker exec squid-$i apt-get install -y python3 python3-pip firefox wget tar
             docker exec squid-$i pip3 install selenium
+            docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
+            docker exec squid-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
+            docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
           done
 
-      - name: Create directory and copy Python script and Squid config into containers
+      - name: Create directory and copy Python script into containers
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
@@ -51,24 +52,12 @@ jobs:
             if [ "$RUNNING" = "true" ]; then
               docker exec squid-$i mkdir -p /home/ubuntu/screenshots
               docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
-              docker cp squid.conf squid-$i:/etc/squid/squid.conf
             else
               echo "Container squid-$i is not running, skipping."
             fi
           done
 
-      - name: Restart Squid containers
-        run: |
-          for i in {1..5}; do
-            RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
-            if [ "$RUNNING" = "true" ]; then
-              docker restart squid-$i
-            else
-              echo "Container squid-$i is not running, skipping."
-            fi
-          done
-
-      - name: Run Python script to capture screenshots with Chrome
+      - name: Run Python script to capture screenshots with Firefox
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
@@ -81,6 +70,7 @@ jobs:
           done
 
       - name: Copy screenshots from Docker containers
+        if: ${{ success() }}  # Only execute if script ran successfully
         run: |
           mkdir -p artifacts/screenshots
 
@@ -94,6 +84,7 @@ jobs:
           done
 
       - name: Archive screenshots as artifacts
+        if: ${{ success() }}  # Only archive screenshots if copied successfully
         uses: actions/upload-artifact@v2
         with:
           name: screenshots
