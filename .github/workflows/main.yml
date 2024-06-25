@@ -1,4 +1,4 @@
-name: Capture Screenshots with Firefox
+name: Capture Screenshots with Chrome
 
 on:
   push:
@@ -26,18 +26,32 @@ jobs:
           done
 
       - name: Install Python 3 and dependencies in Docker containers
+        if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
             docker exec squid-$i apt-get update
-            docker exec squid-$i apt-get install -y python3 python3-pip firefox wget tar
+            docker exec squid-$i apt-get install -y python3 python3-pip firefox wget tar unzip
             docker exec squid-$i pip3 install selenium
-            docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
-            docker exec squid-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
-            docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
-            docker exec squid-$i chmod +x /usr/local/bin/geckodriver
+          done
+
+      - name: Install Chrome and Chrome WebDriver in Docker containers
+        if: ${{ success() }}  # Only execute if all containers are running
+        run: |
+          for i in {1..5}; do
+            docker exec squid-$i wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+            docker exec squid-$i echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
+            docker exec squid-$i apt-get update
+            docker exec squid-$i apt-get install -y google-chrome-stable
+            docker exec squid-$i CHROMEVER=$(google-chrome-stable --version | awk '{print $3}' | awk -F'.' '{print $1}')
+            docker exec squid-$i wget -q https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROMEVER -O /tmp/chromedriver_version
+            docker exec squid-$i wget -q https://chromedriver.storage.googleapis.com/$(cat /tmp/chromedriver_version)/chromedriver_linux64.zip -O /tmp/chromedriver.zip
+            docker exec squid-$i unzip -o /tmp/chromedriver.zip -d /usr/local/bin/
+            docker exec squid-$i chmod +x /usr/local/bin/chromedriver
+            docker exec squid-$i rm /tmp/chromedriver.zip /tmp/chromedriver_version
           done
 
       - name: Create directory and copy Python script and Squid config into containers
+        if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
@@ -61,7 +75,8 @@ jobs:
             fi
           done
 
-      - name: Run Python script to capture screenshots with Firefox
+      - name: Run Python script to capture screenshots with Chrome
+        if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
