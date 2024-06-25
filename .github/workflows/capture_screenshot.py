@@ -17,7 +17,6 @@ def capture_screenshot(index):
     firefox_capabilities = webdriver.DesiredCapabilities.FIREFOX
     firefox_capabilities['proxy'] = {
         "httpProxy": proxy,
-        "ftpProxy": proxy,
         "sslProxy": proxy,
         "proxyType": "MANUAL",
     }
