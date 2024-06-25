@@ -28,8 +28,8 @@ jobs:
             # Start container with specific IP and port mappings
             docker run -d --name squid-$i --net squid-network --ip $ip_address -p $external_port:$internal_port sameersbn/squid
             
-            # Apply NAT rules using iptables
-            iptables -t nat -A POSTROUTING -s $ip_address ! -o bridge-coi -j SNAT --to $external_ip
+            # Apply NAT rules using iptables (alternative method)
+            iptables -t nat -A POSTROUTING -s $ip_address ! -o bridge-coi -j SNAT --to-source $external_ip
           done
 
       - name: Display Docker container ports
