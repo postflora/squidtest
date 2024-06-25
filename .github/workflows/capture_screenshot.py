@@ -8,17 +8,26 @@ def capture_screenshot(index):
     options.headless = True
     options.add_argument('--log-level=DEBUG')
 
-    # Proxy settings
+    # Assign unique proxy settings based on index
     proxy_host = f"172.18.0.{index}"
     proxy_port = 3128
-    options.add_argument(f'--proxy-server=http://{proxy_host}:{proxy_port}')
+
+    # Proxy configuration for Selenium
+    proxy = f"{proxy_host}:{proxy_port}"
+    firefox_capabilities = webdriver.DesiredCapabilities.FIREFOX
+    firefox_capabilities['proxy'] = {
+        "httpProxy": proxy,
+        "ftpProxy": proxy,
+        "sslProxy": proxy,
+        "proxyType": "MANUAL",
+    }
 
     # Using executable_path to specify geckodriver path
     gecko_driver_path = '/usr/local/bin/geckodriver'  # Replace with your actual path
-    driver = webdriver.Firefox(executable_path=gecko_driver_path, options=options)
+    driver = webdriver.Firefox(executable_path=gecko_driver_path, options=options, capabilities=firefox_capabilities)
     
     try:
-        # Set page load timeout to 30 seconds
+        # Set page load timeout to 60 seconds (adjust as needed)
         driver.set_page_load_timeout(60)
 
         driver.get("https://whatismyipaddress.com/")
