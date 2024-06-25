@@ -25,20 +25,6 @@ jobs:
             docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
           done
 
-      - name: Log Squid container output
-        run: |
-          for i in {1..5}; do
-            echo "Logs for squid-$i:"
-            docker logs squid-$i
-          done
-
-      - name: Verify containers are running
-        run: |
-          for i in {1..5}; do
-            docker inspect -f '{{.State.Running}}' squid-$i
-          done
-        continue-on-error: true  # Continue even if some containers are not running
-
       - name: Install Python 3 and dependencies in Docker containers
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
