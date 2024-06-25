@@ -29,7 +29,7 @@ jobs:
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
-            docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget unzip python3 python3-pip'
+            docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget unzip python3 python3-pip sudo'
             docker exec squid-$i sh -c 'wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -'
             docker exec squid-$i sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee -a /etc/apt/sources.list.d/google-chrome.list'
             docker exec squid-$i apt-get update
