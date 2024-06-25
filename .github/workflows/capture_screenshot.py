@@ -3,30 +3,26 @@ from selenium.webdriver.firefox.options import Options
 import time
 import sys
 
-def capture_screenshot(index):
+def capture_screenshot(index, proxy_port):
     options = Options()
     options.headless = True
     options.add_argument('--log-level=DEBUG')
 
-    # Assign unique proxy settings based on index
+    # Proxy settings
     proxy_host = f"172.18.0.{index}"
-    proxy_port = 3128
-
-    # Proxy configuration for Selenium
-    proxy = f"{proxy_host}:{proxy_port}"
-    firefox_capabilities = webdriver.DesiredCapabilities.FIREFOX
-    firefox_capabilities['proxy'] = {
-        "httpProxy": proxy,
-        "sslProxy": proxy,
-        "proxyType": "MANUAL",
-    }
-
+    
+    options.set_preference('network.proxy.type', 1)
+    options.set_preference('network.proxy.http', proxy_host)
+    options.set_preference('network.proxy.http_port', proxy_port)
+    options.set_preference('network.proxy.ssl', proxy_host)
+    options.set_preference('network.proxy.ssl_port', proxy_port)
+    
     # Using executable_path to specify geckodriver path
-    gecko_driver_path = '/usr/local/bin/geckodriver'  # Replace with your actual path
-    driver = webdriver.Firefox(executable_path=gecko_driver_path, options=options, capabilities=firefox_capabilities)
+    gecko_driver_path = '/usr/local/bin/geckodriver'
+    driver = webdriver.Firefox(executable_path=gecko_driver_path, options=options)
     
     try:
-        # Set page load timeout to 60 seconds (adjust as needed)
+        # Set page load timeout to 30 seconds
         driver.set_page_load_timeout(60)
 
         driver.get("https://whatismyipaddress.com/")
@@ -38,9 +34,10 @@ def capture_screenshot(index):
         driver.quit()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python capture_screenshot.py <index>")
+    if len(sys.argv) < 3:
+        print("Usage: python capture_screenshot.py <index> <proxy_port>")
         sys.exit(1)
     
     index = int(sys.argv[1])
-    capture_screenshot(index)
+    proxy_port = int(sys.argv[2])
+    capture_screenshot(index, proxy_port)
