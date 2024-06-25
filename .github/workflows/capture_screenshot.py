@@ -44,7 +44,4 @@ if __name__ == "__main__":
     index = int(sys.argv[1])
     starting_proxy_port = int(sys.argv[2])
     
-    # Adjust proxy port for each run
-    proxy_port = starting_proxy_port + index - 1
-    
     capture_screenshot(index, proxy_port)
