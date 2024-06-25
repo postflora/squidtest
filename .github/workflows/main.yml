@@ -22,13 +22,7 @@ jobs:
       - name: Run Squid containers
         run: |
           for i in {1..5}; do
-            docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
-          done
-
-      - name: Verify Squid containers are running
-        run: |
-          for i in {1..5}; do
-            docker ps -f "name=squid-$i"
+            docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) -p $((3127 + i)):3128 sameersbn/squid
           done
 
       - name: Install Python 3 and dependencies in Docker containers
@@ -64,7 +58,7 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i
+              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $((3127 + i))
             else
               echo "Container squid-$i is not running, skipping."
             fi
