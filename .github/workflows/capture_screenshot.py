@@ -19,9 +19,14 @@ def capture_screenshot(index):
     driver = webdriver.Firefox(firefox_profile=profile, options=options, executable_path='/usr/local/bin/geckodriver')
     
     try:
+        # Set page load timeout to 30 seconds
+        driver.set_page_load_timeout(30)
+
         driver.get("https://whatismyipaddress.com/")
         time.sleep(5)  # Allow time for the page to load
         driver.save_screenshot(f"/home/ubuntu/screenshots/screenshot_{index}.png")
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
     finally:
         driver.quit()
 
