@@ -19,13 +19,11 @@ jobs:
       - name: Pull Squid image
         run: docker pull sameersbn/squid
 
-      - name: Run Squid containers
+      - name: Run Squid containers with unique IP addresses
         run: |
-          docker run -d --name squid-1 --net squid-network --ip 172.18.0.2 sameersbn/squid
-          docker run -d --name squid-2 --net squid-network --ip 172.18.0.3 sameersbn/squid
-          docker run -d --name squid-3 --net squid-network --ip 172.18.0.4 sameersbn/squid
-          docker run -d --name squid-4 --net squid-network --ip 172.18.0.5 sameersbn/squid
-          docker run -d --name squid-5 --net squid-network --ip 172.18.0.6 sameersbn/squid
+          for i in {1..5}; do
+            docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
+          done
 
       - name: Install Python 3 and dependencies in Docker containers
         if: ${{ success() }}  # Only execute if all containers are running
