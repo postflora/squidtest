@@ -39,6 +39,7 @@ jobs:
             echo "http_access allow all" >> squid-$i.conf
             echo "http_port $external_port" >> squid-$i.conf  # Set external http_port to incremental ports for each container
             echo "http_port $internal_port" >> squid-$i.conf  # Set internal http_port to incremental ports for each container
+            echo "visible_hostname squid-$i" >> squid-$i.conf  # Set the visible hostname for Squid
             docker cp squid-$i.conf squid-$i:/etc/squid/squid.conf
             rm squid-$i.conf
             docker restart squid-$i
