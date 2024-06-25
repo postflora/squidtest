@@ -1,7 +1,7 @@
+import sys
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 import time
-import sys
 
 def capture_screenshot(index, proxy_port):
     options = Options()
@@ -10,6 +10,8 @@ def capture_screenshot(index, proxy_port):
 
     # Proxy settings
     proxy_host = f"172.18.0.{index}"
+    
+    print(f"Proxy host: {proxy_host}, Proxy port: {proxy_port}")  # Debug output
     
     options.set_preference('network.proxy.type', 1)
     options.set_preference('network.proxy.http', proxy_host)
@@ -31,8 +33,6 @@ def capture_screenshot(index, proxy_port):
 
     except Exception as e:
         print(f"Error occurred: {str(e)}")
-        # Additional logging
-        print(f"Proxy host: {proxy_host}, Proxy port: {proxy_port}")
     finally:
         driver.quit()
 
