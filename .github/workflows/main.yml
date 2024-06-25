@@ -22,14 +22,20 @@ jobs:
       - name: Run Squid containers
         run: |
           for i in {1..5}; do
-            docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) -p $((3127 + i)):3128 sameersbn/squid
+            external_port=$((3127 + i))
+            docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) -p $external_port:3128 sameersbn/squid
           done
 
-      - name: Copy custom squid.conf into containers
+      - name: Generate and Copy custom squid.conf into containers
         run: |
           for i in {1..5}; do
-            docker cp squid.conf squid-$i:/etc/squid/squid.conf
-            docker restart squid-$i 
+            external_port=$((3127 + i))
+            echo "acl localnet src 172.18.0.0/16" > squid-$i.conf
+            echo "http_access allow localnet" >> squid-$i.conf
+            echo "http_port $external_port" >> squid-$i.conf
+            docker cp squid-$i.conf squid-$i:/etc/squid/squid.conf
+            rm squid-$i.conf
+            docker restart squid-$i
           done
 
       - name: Install Python 3 and dependencies in Docker containers
@@ -65,7 +71,8 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $((3127 + i))
+              external_port=$((3127 + i))
+              docker exec squid-$i python3 /home/ubuntu/capture_screenshot.py $i $external_port
             else
               echo "Container squid-$i is not running, skipping."
             fi
