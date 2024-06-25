@@ -13,9 +13,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
-      - name: Build custom Squid image
-        run: docker build -t custom-squid -f Dockerfile .
-
       - name: Create custom Docker network
         run: docker network create --subnet=172.18.0.0/16 squid-network
 
@@ -48,6 +45,7 @@ jobs:
             if [ "$RUNNING" = "true" ]; then
               docker exec squid-$i mkdir -p /home/ubuntu/screenshots
               docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
+              docker cp squid.conf /etc/squid/squid.conf
             else
               echo "Container squid-$i is not running, skipping."
             fi
