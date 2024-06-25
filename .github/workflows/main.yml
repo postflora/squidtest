@@ -64,7 +64,7 @@ jobs:
             driver.save_screenshot(f'/home/ubuntu/screenshots/screenshot_{i}.png')
             driver.quit()
         EOF
-        docker cp squid-$i:/home/ubuntu/screenshots/screenshot_{i}.png screenshots/squid-$i
+        docker cp squid-$i:/home/ubuntu/screenshots/screenshot_{i}.png screenshots/screenshot_{i}.png
         done
     
     - name: Archive screenshots as artifacts
