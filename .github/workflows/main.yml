@@ -74,7 +74,7 @@ jobs:
 
               driver.save_screenshot(f'/home/ubuntu/screenshots/screenshot_{i}.png')
               driver.quit()
-              EOF"
+              EOF
             else
               echo "Container squid-$i is not running, skipping."
             fi
