@@ -35,15 +35,17 @@ jobs:
             docker exec squid-$i wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz
             docker exec squid-$i tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/
             docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
+
+            # Create screenshots directory inside Docker container
+            docker exec squid-$i mkdir -p /home/ubuntu/screenshots
           done
 
-      - name: Create directory and copy Python script into containers
+      - name: Copy Python script into containers
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i mkdir -p /home/ubuntu/screenshots
               docker cp .github/workflows/capture_screenshot.py squid-$i:/home/ubuntu/capture_screenshot.py
             else
               echo "Container squid-$i is not running, skipping."
