@@ -1,6 +1,5 @@
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.chrome.options import Options
 import time
 import sys
 
@@ -9,18 +8,14 @@ def capture_screenshot(index):
     options.headless = True
     options.add_argument('--log-level=DEBUG')
 
-    profile = webdriver.FirefoxProfile()
-    profile.set_preference("network.proxy.type", 1)
-    profile.set_preference("network.proxy.http", f"172.18.0.{index}")
-    profile.set_preference("network.proxy.http_port", 3128)
-    profile.set_preference("network.proxy.ssl", f"172.18.0.{index}")
-    profile.set_preference("network.proxy.ssl_port", 3128)
-    profile.update_preferences()
+    # Proxy settings
+    proxy_host = f"172.18.0.{index}"
+    proxy_port = 3128
+    options.add_argument(f'--proxy-server=http://{proxy_host}:{proxy_port}')
 
-    # Using executable_path to specify GeckoDriver path
-    service = Service('/usr/local/bin/geckodriver')
-    
-    driver = webdriver.Firefox(service=service, options=options, firefox_profile=profile)
+    # Using executable_path to specify ChromeDriver path
+    chrome_driver_path = '/usr/local/bin/chromedriver'  # Replace with your actual path
+    driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
     
     try:
         # Set page load timeout to 30 seconds
