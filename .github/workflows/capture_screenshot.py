@@ -3,13 +3,14 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 import time
 
-def capture_screenshot(index, proxy_port):
+def capture_screenshot(index, external_port):
     options = Options()
     options.headless = True
     options.add_argument('--log-level=DEBUG')
 
     # Proxy settings
     proxy_host = f"172.18.0.{index}"
+    proxy_port = external_port  # Use external port for proxy_port
     
     print(f"Proxy host: {proxy_host}, Proxy port: {proxy_port}")  # Debug output
     
@@ -38,10 +39,10 @@ def capture_screenshot(index, proxy_port):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python capture_screenshot.py <index> <starting_proxy_port>")
+        print("Usage: python capture_screenshot.py <index> <external_port>")
         sys.exit(1)
     
     index = int(sys.argv[1])
-    starting_proxy_port = int(sys.argv[2])
+    external_port = int(sys.argv[2])
     
-    capture_screenshot(index, proxy_port)
+    capture_screenshot(index, external_port)
