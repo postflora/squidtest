@@ -10,25 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Stop existing Docker containers if any
-        run: |
-          CONTAINERS=$(docker ps -aq)
-          if [ -n "$CONTAINERS" ]; then
-            docker stop $CONTAINERS
-            docker rm $CONTAINERS
-          else
-            echo "No existing containers to stop."
-          fi
-
-      - name: Remove existing Docker networks if any
-        run: |
-          NETWORKS=$(docker network ls --format "{{.Name}}" | grep '^squid-network$')
-          if [ -n "$NETWORKS" ]; then
-            docker network rm squid-network
-          else
-            echo "No existing network to remove."
-          fi
-
       - name: Create custom Docker network
         run: docker network create --driver-bridge --subnet=172.18.0.0/16 squid-network
 
