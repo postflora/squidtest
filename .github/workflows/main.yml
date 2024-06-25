@@ -53,7 +53,7 @@ jobs:
           for i in {1..5}; do
             RUNNING=$(docker inspect -f '{{.State.Running}}' squid-$i)
             if [ "$RUNNING" = "true" ]; then
-              docker exec squid-$i bash -c 'python3 - << EOF
+                  docker exec squid-$i bash -c 'python3 - << EOF
                   from selenium import webdriver
                   from selenium.webdriver.firefox.options import Options
                   import time
@@ -75,10 +75,10 @@ jobs:
 
                   driver.save_screenshot(f"/home/ubuntu/screenshots/screenshot_{i}.png")
                   driver.quit()
-              EOF'
-            else
-              echo "Container squid-$i is not running, skipping."
-            fi
+                  EOF'
+           else
+            echo "Container squid-$i is not running, skipping."
+           fi
           done
 
       - name: Copy screenshots from Docker containers
