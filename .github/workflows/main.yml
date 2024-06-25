@@ -30,8 +30,8 @@ jobs:
         run: |
           for i in {1..5}; do
             docker exec squid-$i sh -c 'apt-get update && apt-get install -y wget unzip python3 python3-pip'
-            docker exec squid-$i wget -q "https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip
-            docker exec squid-$i unzip -o /tmp/chromedriver.zip -d /tmp
+            docker exec squid-$i wget -q "https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver-linux64.zip
+            docker exec squid-$i unzip -o /tmp/chromedriver-linux64.zip -d /tmp
             docker exec squid-$i mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
             docker exec squid-$i chmod +x /usr/local/bin/chromedriver
             docker exec squid-$i rm -rf /tmp/chromedriver-linux64 /tmp/chromedriver.zip
