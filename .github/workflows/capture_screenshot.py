@@ -38,9 +38,13 @@ def capture_screenshot(index, proxy_port):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python capture_screenshot.py <index> <proxy_port>")
+        print("Usage: python capture_screenshot.py <index> <starting_proxy_port>")
         sys.exit(1)
     
     index = int(sys.argv[1])
-    proxy_port = int(sys.argv[2])
+    starting_proxy_port = int(sys.argv[2])
+    
+    # Adjust proxy port for each run
+    proxy_port = starting_proxy_port + index - 1
+    
     capture_screenshot(index, proxy_port)
