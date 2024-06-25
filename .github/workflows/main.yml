@@ -1,1 +1,80 @@
+name: Capture Screenshots
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Set up Docker
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        
+    - name: Build and run Docker containers
+      run: |
+        docker network create --subnet=172.18.0.0/16 squid-network
+        docker pull sameersbn/squid
+        
+        for i in {1..5}; do
+          docker run -d --name squid-$i --net squid-network --ip 172.18.0.$((i+1)) sameersbn/squid
+        done
+        
+    - name: Install Firefox, geckodriver, and Selenium in containers
+      run: |
+        for i in {1..5}; do
+          docker exec squid-$i apt-get update
+          docker exec squid-$i apt-get install -y firefox python3-pip wget tar
+          docker exec squid-$i pip3 install selenium
+          
+          # Download and install geckodriver
+          docker exec squid-$i bash -c "wget https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz"
+          docker exec squid-$i bash -c "tar -xvzf geckodriver-v0.31.0-linux64.tar.gz -C /usr/local/bin/"
+          docker exec squid-$i rm geckodriver-v0.31.0-linux64.tar.gz
+        done
+    
+    - name: Run Python script to capture screenshots with Firefox
+      run: |
+        mkdir -p screenshots
+        
+        for i in {2..6}; do
+          docker exec squid-$i python3 - << 'EOF'
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+import time
+
+options = Options()
+options.headless = True
+
+for i in range(2, 7):
+    profile = webdriver.FirefoxProfile()
+    profile.set_preference("network.proxy.type", 1)
+    profile.set_preference("network.proxy.http", f"172.18.0.{i}")
+    profile.set_preference("network.proxy.http_port", 3128)
+    profile.set_preference("network.proxy.ssl", f"172.18.0.{i}")
+    profile.set_preference("network.proxy.ssl_port", 3128)
+    profile.update_preferences()
+
+    driver = webdriver.Firefox(options=options, firefox_profile=profile)
+    driver.get('https://whatismyipaddress.com/')
+    time.sleep(5)  # Allow time for the page to load
+
+    driver.save_screenshot(f'/home/ubuntu/build/screenshot_{i}.png')
+    driver.quit()
+EOF
+          docker cp squid-$i:/home/ubuntu/build/screenshot_${i}.png screenshots/screenshot_${i}.png
+        done
+    
+    - name: Archive screenshots as artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: screenshots
+        path: screenshots
 
