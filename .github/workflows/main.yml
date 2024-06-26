@@ -35,7 +35,7 @@ jobs:
             # Apply SNAT rule using nftables with sudo
             sudo nft add table ip nat || true
             sudo nft add chain ip nat POSTROUTING { type nat hook postrouting priority 100 \; } || true
-            sudo nft add rule ip nat POSTROUTING ip saddr $ip_address oifname "bridge-coi" snat to $nat_ip
+            sudo nft add rule ip nat POSTROUTING ip saddr $ip_address oifname "eth0" snat to $nat_ip
 
             # Print nft rules for debugging
             sudo nft list ruleset
@@ -103,8 +103,17 @@ jobs:
             fi
           done
 
-      - name: Run Python script to capture screenshots with Firefox
+      - name: Archive and upload screenshots
         if: ${{ success() }}  # Only execute if all containers are running
         run: |
+          mkdir -p screenshots
           for i in {1..5}; do
-            RUNNING=$(d
+            sudo docker cp squid-$i:/home/ubuntu/screenshots ./screenshots/container-$i
+          done
+          tar -czvf screenshots.tar.gz screenshots
+          
+      - name: Upload screenshots artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshots
+          path: screenshots.tar.gz
